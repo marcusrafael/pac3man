@@ -85,7 +85,37 @@ def scoreEvaluationFunction(currentGameState):
       This evaluation function is meant for use with adversarial search agents
       (not reflex agents).
     """
-    return currentGameState.getScore()
+        #successorGameState = currentGameState.generatePacmanSuccessor(action)
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    closestghost = min([manhattanDistance(newPos, ghost.getPosition())
+                            for ghost in newGhostStates])
+    
+    foodList = newFood.asList()
+    if foodList:
+      closestfood = min([manhattanDistance(newPos, food)
+                               for food in foodList])
+    else:
+      closestfood = 0
+    
+    if (closestghost == 0):
+      closestghost = 10000
+    result = 0.0
+
+    if (closestghost < 8):
+      result = (-5 * closestfood) + (-0.1*closestghost) - \
+                (100*len(foodList)) + (currentGameState.getScore())
+    else:
+      result = (-10 * closestfood) - \
+                (100*len(foodList)) + (currentGameState.getScore())
+
+    #print("Result ", result)
+    return result
+
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -139,18 +169,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     newValue = min(currentValue, minimax(sucessor, depth - 1, True)[0])
                     if(newValue < currentValue):
                         currentValue = newValue
-                        currentAction = action
+                        currentAction = action   
+
                 return currentValue, currentAction
 
             def maxValue(state):
                 currentValue = float("-inf")
                 actions = state.getLegalActions()
                 sucessors = [(state.generateSuccessor(0, action), action) for action in actions]
+
                 for sucessor, action in sucessors:
-                    newValue = max(currentValue, minimax(sucessor, depth - 1, False)[0])
+                    newValue = max(currentValue, minimax(sucessor, depth - 1, False)[0]) 
                     if(newValue > currentValue):
                         currentValue = newValue
                         currentAction = action
+                       
                 return currentValue, currentAction
 
             if(state.isLose() or state.isWin() or depth == 0):
@@ -176,8 +209,57 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def minimax(state, depth, alpha, beta, maximizing):
+
+            def minValue(state, alpha, beta):
+                currentValue = float("inf")
+                actions = state.getLegalActions()
+                sucessors = [(state.generateSuccessor(0, action), action) for action in actions]
+                for sucessor, action in sucessors:
+                    newValue = min(currentValue, minimax(sucessor, depth - 1, alpha, beta, True)[0])
+                    if(newValue < currentValue):
+                        currentValue = newValue
+                        currentAction = action
+                        if(newValue < alpha):
+                          currentAction = action
+                          return newValue, currentAction
+                        beta = min(beta, newValue)    
+
+                return currentValue, currentAction
+
+            def maxValue(state, alpha, beta):
+                currentValue = float("-inf")
+                actions = state.getLegalActions()
+                sucessors = [(state.generateSuccessor(0, action), action) for action in actions]
+
+                for sucessor, action in sucessors:
+                    newValue = max(currentValue, minimax(sucessor, depth - 1, alpha, beta, False)[0]) 
+                    if(newValue > currentValue):
+                        currentValue = newValue
+                        currentAction = action
+                        if(newValue > beta):
+                          currentAction = action
+                          return newValue, currentAction
+                        alpha = max(alpha, newValue)
+                       
+                return currentValue, currentAction
+
+            if(state.isLose() or state.isWin() or depth == 0):
+                return (self.evaluationFunction(state), Directions.STOP)
+
+            if(maximizing):
+                return maxValue(state, alpha, beta)
+
+            else:
+                return minValue(state, alpha, beta)
+
+        alpha = float("-inf")
+        beta = float("inf")
+        depth = 3
+        result = minimax(gameState, depth, alpha, beta, True)[1]
+        legalMoves = gameState.getLegalActions()
+        print("{}: {}".format(legalMoves, result))
+        return result
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
