@@ -92,23 +92,30 @@ def scoreEvaluationFunction(currentGameState):
     newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
     closestghost = min([manhattanDistance(newPos, ghost.getPosition())
-                        for ghost in newGhostStates])
-
-    if closestghost:
-      ghost_dist = -10/closestghost
-    else:
-      ghost_dist = -1000
-
+                            for ghost in newGhostStates])
+    
     foodList = newFood.asList()
     if foodList:
       closestfood = min([manhattanDistance(newPos, food)
-                           for food in foodList])
+                               for food in foodList])
     else:
       closestfood = 0
+    
+    if (closestghost == 0):
+      closestghost = 10000
+    result = 0.0
 
-        # large weight to number of food left
-    return (-2 * closestfood) + ghost_dist - (100*len(foodList)) + currentGameState.getScore()
-    #return currentGameState.getScore()
+    if (closestghost < 8):
+      result = (-5 * closestfood) + (-0.1*closestghost) - \
+                (100*len(foodList)) + (currentGameState.getScore())
+    else:
+      result = (-10 * closestfood) - \
+                (100*len(foodList)) + (currentGameState.getScore())
+
+    #print("Result ", result)
+    return result
+
+
 
 class MultiAgentSearchAgent(Agent):
     """
