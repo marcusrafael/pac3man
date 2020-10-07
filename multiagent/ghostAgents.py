@@ -113,7 +113,7 @@ class CoordinationGhost(GhostAgent):
         #     ghostState.setPacmanFound(False)
 
         if ghostState.getPacmanFound():
-            # print('Ghost {} sabe do besta feroso'.format(self.index))
+            print('Ghost {} encontrou o pacman.'.format(self.index))
             legalActions = state.getLegalActions(self.index)
             pos = state.getGhostPosition(self.index)
             isScared = ghostState.scaredTimer > 0
@@ -131,9 +131,11 @@ class CoordinationGhost(GhostAgent):
             distancesToPacman = [manhattanDistance(
                 pos, pacmanPosition) for pos in newPositions]
             if isScared:
+                print('Ghost {} está fugindo do pacman.'.format(self.index))
                 bestScore = max(distancesToPacman)
                 bestProb = self.prob_scaredFlee
             else:
+                print('Ghost {} está perseguindo o pacman.'.format(self.index))
                 bestScore = min(distancesToPacman)
                 bestProb = self.prob_attack
             bestActions = [action for action, distance in zip(
@@ -148,7 +150,7 @@ class CoordinationGhost(GhostAgent):
             dist.normalize()
             return dist
         else:
-            # print('Ghost {} NAO sabe do besta feroso'.format(self.index))
+            print('Ghost {} está procurando o pacman.'.format(self.index))
             dist = util.Counter()
             for a in state.getLegalActions(self.index):
                 dist[a] = 1.0
